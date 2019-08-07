@@ -1,0 +1,2 @@
+# QtToolLib
+Qt tool class
