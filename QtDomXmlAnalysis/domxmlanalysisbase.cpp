@@ -1,5 +1,8 @@
 #include "domxmlanalysisbase.h"
+DomXmlAnalysisBase::DomXmlAnalysisBase()
+{
 
+}
 DomXmlAnalysisBase::DomXmlAnalysisBase(QString strfilename)
 {
     m_strFileName = strfilename;

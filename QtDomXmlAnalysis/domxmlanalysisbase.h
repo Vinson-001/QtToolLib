@@ -12,6 +12,7 @@
 class DomXmlAnalysisBase
 {
 public:
+    DomXmlAnalysisBase();
     DomXmlAnalysisBase(QString strfilename);
 private:
     QString m_strFileName;
