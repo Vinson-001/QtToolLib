@@ -1,9 +1,10 @@
 #include "mytableview.h"
 #include <QDebug>
-MyTableView::MyTableView(QList<QString> strListHeadData)
-    :m_strListHeadData(strListHeadData)
+#include "mytableviewdelegate.h"
+MyTableView::MyTableView(QWidget *parent)
+    :QTableView(parent),m_model(NULL)
 {
-    m_model = NULL;
+    m_strListHeadData << tr("序号") << tr("设备ID") << tr("设备名称") << tr("设备序列号") << tr("私有数据") << tr("IP地址") << tr("状态");
     initTableView();
 }
 
@@ -31,7 +32,7 @@ void MyTableView::initTableView()
         return;
     }
     m_model = new QStandardItemModel(this);
-    m_model->setColumnCount(colCount);
+    m_model->setColumnCount(colCount+1);
     for(int i = 0; i < colCount; i++)
     {
         m_model->setHeaderData(i,Qt::Horizontal,m_strListHeadData.at(i));
@@ -55,8 +56,11 @@ void MyTableView::initTableView()
     this->setSelectionBehavior ( QAbstractItemView::SelectRows); //设置选择行为，以行为单位
     this->setSelectionMode ( QAbstractItemView::SingleSelection); //设置选择模式，选择单行
     //ui->tableView->verticalHeader()->setSectionResizeMode(QHeaderView::Stretch); /*自适应行高*/
-
+    this->setEditTriggers(QAbstractItemView::NoEditTriggers); /*禁止编辑*/
+    this->setMouseTracking(true);
     this->setModel(m_model);
+    this->setItemDelegate(new MyTableviewDelegate);
+    connect(this, SIGNAL(doubleClicked(const QModelIndex &)), this, SLOT(slotRowDoubleClicked(const QModelIndex &)));
 }
 /**
  * @funcname  addRowTextForTable
@@ -168,4 +172,15 @@ QString MyTableView::getValueFromRowAndCol(int row, int col)
     QString str= index.data().toString();
     qDebug() << str;
     return str;
+}
+
+void MyTableView::slotRowDoubleClicked(const QModelIndex &index)
+{
+    //QModelIndex index = this->currentIndex();
+    int row = index.row();
+    if (!index.isValid())
+    {
+        return;
+    }
+    qDebug() << row;
 }
