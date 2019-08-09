@@ -1,6 +1,7 @@
 #include "mytableview.h"
 #include <QDebug>
 #include "mytableviewdelegate.h"
+#include "devinfosys.h"
 MyTableView::MyTableView(QWidget *parent)
     :QTableView(parent),m_model(NULL)
 {
@@ -173,6 +174,11 @@ QString MyTableView::getValueFromRowAndCol(int row, int col)
     qDebug() << str;
     return str;
 }
+/**
+ * @funcname  slotRowDoubleClicked
+ * @brief     双击
+ * @param     index
+ */
 
 void MyTableView::slotRowDoubleClicked(const QModelIndex &index)
 {
@@ -182,5 +188,8 @@ void MyTableView::slotRowDoubleClicked(const QModelIndex &index)
     {
         return;
     }
-    qDebug() << row;
+    //qDebug() << row;
+    DevInfoSys dlg(this);
+    dlg.exec();
+
 }
