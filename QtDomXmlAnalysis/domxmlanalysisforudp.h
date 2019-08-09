@@ -16,7 +16,26 @@ public:
 
 
 private:
+    void initUnRegisterXml();
 
+};
+
+class DomXmlAnalysisForRegister : public DomXmlAnalysisBase
+{
+public:
+    DomXmlAnalysisForRegister(QString strfilename);
+    DomXmlAnalysisForRegister();
+
+
+private:
+    void initRegisterXml();
+
+public:
+    bool getDevInfo(QString strId, QList<QString> &strDevInfoList);
+    bool getSysSetInfo(QString strId, QList<QString> &strSysInfoList);
+
+private:
+    QString m_strFileName;
 };
 
 #endif // DOMXMLANALYSISFORUDP_H

@@ -8,7 +8,7 @@
 #define DOMXMLANALYSISBASE_H
 #include <QtXml>
 #include <QDebug>
-
+#include <QMessageBox>
 class DomXmlAnalysisBase
 {
 public:
@@ -16,10 +16,13 @@ public:
     DomXmlAnalysisBase(QString strfilename);
 private:
     QString m_strFileName;
+    QList<QString> m_ElementList;
+    QString m_RootElement;
 
 private:
 
-    void addDomXml(QString strId,QList<QString> strListText);
+    //void addDomXml(QString strId,QList<QString> strListText);
+    void addDomXml(QString strId,QList<QString> strElementListText);
     void deleteDomXml(QString strId);
     void updateDomXml(QString strId,QList<QString> strListText);
     void getDomXmlstrIdList(QList<QString> &strIdList);
@@ -30,6 +33,8 @@ public:
     void readDomXml(QString strId, QList<QString> &strListText);
     void readDomXmlTemp(QList<QString> &strListText);
     void readDomXmlAll(QMap<QString,QList<QString>> &mapElement);
+    int setXmlElement(QString strRootElement,QList<QString> strList);
+
 };
 
 #endif // DOMXMLANALYSISBASE_H

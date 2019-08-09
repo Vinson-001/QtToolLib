@@ -51,6 +51,10 @@ bool DomXmlAnalysisBase::createDomXml(QString strRoot)
 
 void DomXmlAnalysisBase::doXml(QString operate, QString strId, QList<QString> strListText)
 {
+    if(m_RootElement.isEmpty()){
+        QMessageBox::critical(NULL,"注意","请先设置setXmlElement");
+        return;
+    }
     if(operate == "add"){
         bool flag = false;
         flag = isDomXmlstrIdexist(strId);
@@ -66,6 +70,7 @@ void DomXmlAnalysisBase::doXml(QString operate, QString strId, QList<QString> st
     } else if (operate == "update") {
         updateDomXml(strId,strListText);
     }
+
 }
 /**
  * @funcname  isDomXmlstrIdexist
@@ -103,7 +108,11 @@ void DomXmlAnalysisBase::readDomXml(QString strId, QList<QString> & strListText)
     file.close();
 
     // 以标签名进行查找
-    QDomNodeList list = doc.elementsByTagName("Device");
+    if(m_RootElement.isEmpty()){
+        QMessageBox::critical(NULL,"注意","请先设置setXmlElement");
+        return;
+    }
+    QDomNodeList list = doc.elementsByTagName(m_RootElement);
 
     for(int i=0; i<list.count(); i++)
     {
@@ -172,6 +181,21 @@ void DomXmlAnalysisBase::readDomXmlAll(QMap<QString, QList<QString>> &mapElement
     //qDebug() << mapElement;
 }
 /**
+ * @funcname  setXmlElement
+ * @brief     设置根元素标签，元素名称，返回根元素下个数。需先调用
+ * @param     strRootElement
+ * @param     strList
+ * @return    count
+ */
+
+int DomXmlAnalysisBase::setXmlElement(QString strRootElement,QList<QString> strList)
+{
+    m_ElementList = strList;
+    m_RootElement = strRootElement;
+    return strList.count();
+}
+
+/**
  * @funcname  readDomXmlTemp
  * @brief     解析接收udp临时数据
  * @param     strListText output
@@ -221,7 +245,7 @@ void DomXmlAnalysisBase::readDomXmlTemp(QList<QString> &strListText)
  *                  </Device>
  *            </Devices>
  */
-
+#if 0
 void DomXmlAnalysisBase::addDomXml(QString strId, QList<QString> strListText)
 {
     if(strListText.isEmpty())
@@ -304,6 +328,82 @@ void DomXmlAnalysisBase::addDomXml(QString strId, QList<QString> strListText)
     file.close();
     qDebug() << "add Element xml";
 }
+#endif
+/**
+ * @funcname  addDomXml
+ * @brief     插入一个节点
+ * @param     strId 节点
+ * @param     mapElement <元素,元素值>
+ * @return    void
+ * @example
+ *            <Devices>
+ *                  <Device Id="001">
+ *                      <Name></Name>
+ *                      <Sn></Sn>
+ *                      <Private></Private>
+ *                      <IpAddr></IpAddr>
+ *                      <Status></Status>
+ *                  </Device>
+ *            </Devices>
+ */
+void DomXmlAnalysisBase::addDomXml(QString strId, QList<QString> strElementListText)
+{
+    if(strElementListText.isEmpty())
+    {
+        qDebug() << "mapElement is empty";
+        return;
+    }
+
+    /*1. open file*/
+    QFile file(m_strFileName);
+    if (!file.open(QIODevice::ReadOnly | QIODevice::Text)) return;
+    QDomDocument doc;
+    if (!doc.setContent(&file))
+    {
+        qDebug() << "(addDomXml:line337)doc.setContent failed";
+        file.close();
+        return;
+    }
+    file.close();
+    /*2. add element*/
+
+    QDomElement root = doc.documentElement();
+    if(m_RootElement.isEmpty())
+        return;
+    QDomElement device = doc.createElement(m_RootElement);
+    QDomAttr id = doc.createAttribute("Id");
+    QList<QDomElement>  domElementList;
+    id.setValue(strId);
+    device.setAttributeNode(id);
+    int count = strElementListText.count();
+    int Elementcount = m_ElementList.count();
+    if(count != Elementcount)
+    {
+        qDebug() << "text count != Elementcount";
+        QMessageBox::critical(NULL,"注意","text count != Elementcount");
+        return ;
+    }
+    for (int i = 0; i < count; ++i) {
+        //qDebug() << i.key() << ":" << i.value();
+        QString strElementkey = m_ElementList.at(i);
+        QString strElementvalue = strElementListText.at(i);
+        QDomElement domElement = doc.createElement(strElementkey);
+        QDomText text;
+        text = doc.createTextNode(strElementvalue);
+        domElement.appendChild(text);
+        device.appendChild(domElement);
+    }
+    root.appendChild(device);
+
+    /*3.save xml*/
+    if(!file.open(QIODevice::WriteOnly | QIODevice::Truncate)) {
+        return ;
+    }
+    QTextStream out(&file);
+    doc.save(out, 4);
+    file.close();
+    qDebug() << "add Element xml";
+}
 /**
  * @funcname  deleteDomXml
  * @brief     delete a Element
@@ -324,7 +424,9 @@ void DomXmlAnalysisBase::deleteDomXml(QString strId)
     file.close();
 
     // 以标签名进行查找
-    QDomNodeList list = doc.elementsByTagName("Device");
+    if(m_RootElement.isEmpty())
+        return;
+    QDomNodeList list = doc.elementsByTagName(m_RootElement);
     for(int i=0; i<list.count(); i++)
     {
         QDomElement e = list.at(i).toElement();
@@ -357,8 +459,10 @@ void DomXmlAnalysisBase::deleteDomXml(QString strId)
 
 void DomXmlAnalysisBase::updateDomXml(QString strId, QList<QString> strListText)
 {
-    if(strListText.count()<5)
+    if(strListText.count()<m_ElementList.count()) {
+        QMessageBox::critical(NULL,"注意","strListText个数小于m_ElementList");
         return ;
+    }
 #if 0
     QString strName = strListText.at(0);
     QString strModel = strListText.at(1);
@@ -380,7 +484,9 @@ void DomXmlAnalysisBase::updateDomXml(QString strId, QList<QString> strListText)
     file.close();
 
     // 以标签名进行查找
-    QDomNodeList list = doc.elementsByTagName("Device");
+    if(m_RootElement.isEmpty())
+        return;
+    QDomNodeList list = doc.elementsByTagName(m_RootElement);
 
     for(int i=0; i<list.count(); i++)
     {
