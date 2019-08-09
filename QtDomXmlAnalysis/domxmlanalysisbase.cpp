@@ -172,6 +172,39 @@ void DomXmlAnalysisBase::readDomXmlAll(QMap<QString, QList<QString>> &mapElement
     //qDebug() << mapElement;
 }
 /**
+ * @funcname  readDomXmlTemp
+ * @brief     解析接收udp临时数据
+ * @param     strListText output
+ * @return    no
+ */
+void DomXmlAnalysisBase::readDomXmlTemp(QList<QString> &strListText)
+{
+    QFile file(m_strFileName);
+    if (!file.open(QIODevice::ReadOnly)) return ;
+    QDomDocument doc;
+    if (!doc.setContent(&file))
+    {
+        file.close();
+        return ;
+    }
+    file.close();
+    QDomElement docElem = doc.documentElement();            /*device*/
+    QDomNode n = docElem.firstChild();
+    if(strListText.isEmpty())
+        strListText.clear();
+    while(!n.isNull())
+    {
+        if (n.isElement())
+        {
+            QDomElement e = n.toElement();
+
+             strListText.append(e.text());
+        }
+        n = n.nextSibling();
+    }
+    //qDebug() << m_strLisTemp ;
+}
+/**
  * @funcname  addDomXml
  * @brief     插入一个节点
  * @param     strId 节点
@@ -194,10 +227,12 @@ void DomXmlAnalysisBase::addDomXml(QString strId, QList<QString> strListText)
     if(strListText.isEmpty())
         return;
     QString strName = strListText.at(0);
-    QString strSn = strListText.at(1);
-    QString strPrivate = strListText.at(2);
-    QString strIp = strListText.at(3);
-    QString strStaus = strListText.at(4);
+    QString strModel = strListText.at(1);
+    QString strSn = strListText.at(2);
+    QString strMac = strListText.at(3);
+    QString strPrivate = strListText.at(4);
+    QString strIp = strListText.at(5);
+    QString strStaus = strListText.at(6);
     QFile file(m_strFileName);
     if (!file.open(QIODevice::ReadOnly | QIODevice::Text)) return;
     QDomDocument doc;
@@ -213,9 +248,11 @@ void DomXmlAnalysisBase::addDomXml(QString strId, QList<QString> strListText)
     QDomElement device = doc.createElement("Device");
     QDomAttr id = doc.createAttribute("Id");
     QDomElement name = doc.createElement("Name");
+    QDomElement model = doc.createElement("Model");
     QDomElement sn = doc.createElement("Sn");
+    QDomElement mac = doc.createElement("Mac");
     QDomElement prviate = doc.createElement("Prviate");
-    QDomElement ip = doc.createElement("IpAddr");
+    QDomElement ip = doc.createElement("DevIpAddr");
     QDomElement status = doc.createElement("Status");
     QDomText text;
 
@@ -227,12 +264,24 @@ void DomXmlAnalysisBase::addDomXml(QString strId, QList<QString> strListText)
     device.setAttributeNode(id);
     text = doc.createTextNode(strName);
     name.appendChild(text);
+    if(strModel.isEmpty())
+        strModel = "null";
+    text = doc.createTextNode(strModel);
+    model.appendChild(text);
 
     text = doc.createTextNode(strSn);
     sn.appendChild(text);
 
+    if(strSn.isEmpty())
+        strSn = "null";
+    text = doc.createTextNode(strMac);
+    mac.appendChild(text);
+
+    if(strPrivate.isEmpty())
+        strSn = "null";
     text = doc.createTextNode(strPrivate);
     prviate.appendChild(text);
+
     text = doc.createTextNode(strIp);
     ip.appendChild(text);
     text = doc.createTextNode(strStaus);
@@ -240,7 +289,9 @@ void DomXmlAnalysisBase::addDomXml(QString strId, QList<QString> strListText)
 
 
     device.appendChild(name);
+    device.appendChild(model);
     device.appendChild(sn);
+    device.appendChild(mac);
     device.appendChild(prviate);
     device.appendChild(ip);
     device.appendChild(status);
@@ -308,11 +359,16 @@ void DomXmlAnalysisBase::updateDomXml(QString strId, QList<QString> strListText)
 {
     if(strListText.count()<5)
         return ;
+#if 0
     QString strName = strListText.at(0);
-    QString strSn = strListText.at(1);
-    QString strPrivate = strListText.at(2);
-    QString strIp = strListText.at(3);
-    QString strStatua = strListText.at(4);
+    QString strModel = strListText.at(1);
+    QString strSn = strListText.at(2);
+    QString strMac = strListText.at(3);
+    QString strPrivate = strListText.at(4);
+    QString strIp = strListText.at(5);
+    QString strStaus = strListText.at(6);
+#endif
+    QString strIp = strListText.at(5);
     QFile file(m_strFileName);
     if (!file.open(QIODevice::ReadOnly | QIODevice::Text)) return ;
     QDomDocument doc;
@@ -336,7 +392,16 @@ void DomXmlAnalysisBase::updateDomXml(QString strId, QList<QString> strListText)
             QDomNodeList child = list.at(i).childNodes();
 
             // 将它子节点的首个子节点（就是文本节点）的内容更新，离线时只更新状态
-
+            for(int j = 0; j < child.count(); j++)
+            {
+                QString strText = child.at(j).toElement().text();
+                QString strSetValue = strListText.at(j);
+                if(strText != strSetValue)
+                {
+                    child.at(j).toElement().firstChild().setNodeValue(strSetValue);
+                }
+            }
+#if 0
             if(child.at(0).toElement().text() != strName)
                 child.at(0).toElement().firstChild().setNodeValue(strName);
 
@@ -349,8 +414,9 @@ void DomXmlAnalysisBase::updateDomXml(QString strId, QList<QString> strListText)
             if(child.at(3).toElement().text() != strIp)
                 child.at(3).toElement().firstChild().setNodeValue(strIp);
 
-            if(child.at(4).toElement().text() != strStatua)
-            child.at(4).toElement().firstChild().setNodeValue(strStatua);
+            if(child.at(4).toElement().text() != strStaus)
+            child.at(4).toElement().firstChild().setNodeValue(strStaus);
+#endif
             QFile file(m_strFileName);
             if(!file.open(QIODevice::WriteOnly | QIODevice::Truncate))
             return ;
@@ -358,6 +424,7 @@ void DomXmlAnalysisBase::updateDomXml(QString strId, QList<QString> strListText)
             doc.save(out,4);
             file.close();
             qDebug() << "update Element xml";
+            break;
         }
     }
 }

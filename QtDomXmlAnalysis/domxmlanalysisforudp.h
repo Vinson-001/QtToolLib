@@ -8,16 +8,15 @@
 #define DOMXMLANALYSISFORUDP_H
 #include "./domxmlanalysisbase.h"
 #include <QFileInfo>
-class DomXmlAnalysisForUdp : public DomXmlAnalysisBase
+class DomXmlAnalysisForUnRegister : public DomXmlAnalysisBase
 {
 public:
-    DomXmlAnalysisForUdp(QString strfilename);
-    DomXmlAnalysisForUdp();
+    DomXmlAnalysisForUnRegister(QString strfilename);
+    DomXmlAnalysisForUnRegister();
 
-public:
-    void readDomXmlTemp(QList<QString> &strListText);
+
 private:
-    QString m_strTempFileName;
+
 };
 
 #endif // DOMXMLANALYSISFORUDP_H

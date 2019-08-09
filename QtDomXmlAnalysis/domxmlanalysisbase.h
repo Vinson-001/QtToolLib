@@ -28,6 +28,7 @@ public:
     void doXml(QString operate,QString strId,QList<QString> strListText);
     bool isDomXmlstrIdexist(QString strId);
     void readDomXml(QString strId, QList<QString> &strListText);
+    void readDomXmlTemp(QList<QString> &strListText);
     void readDomXmlAll(QMap<QString,QList<QString>> &mapElement);
 };
 
