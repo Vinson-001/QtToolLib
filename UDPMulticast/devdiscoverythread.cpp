@@ -31,7 +31,9 @@ void DevDiscoveryThread::initUdp()
         m_udpSocket->bind(QHostAddress::AnyIPv4,DISCOVERY_SERVER_PORT,QUdpSocket::ShareAddress);
     }
     connect(m_udpSocket, SIGNAL(readyRead()),this, SLOT(udpRecvData()),Qt::DirectConnection);
+#if DEBUG_TIMER
     connect(m_timer, SIGNAL(timeout()), this, SLOT(udpSendData()),Qt::DirectConnection);
+#endif
     m_strfileTempPath = QDir::currentPath();
     m_strfileTempPath += "/DevInfoTemp.xml";
     m_strfileRegPath = QDir::currentPath() + "/DevInfoRegister.xml";
@@ -67,7 +69,7 @@ void DevDiscoveryThread::createTempXmlforRecvData(QString fileName)
 
 void DevDiscoveryThread::readDomTempXml(QList<QString> &strListText)
 {
-    DomXmlAnalysisForUdp domXml(m_strfileTempPath);
+    DomXmlAnalysisBase domXml(m_strfileTempPath);
     domXml.readDomXmlTemp(strListText);
 }
 /**
@@ -79,7 +81,7 @@ void DevDiscoveryThread::readDomTempXml(QList<QString> &strListText)
 
 bool DevDiscoveryThread::isDomRegisterXml(QString strId)
 {
-    DomXmlAnalysisForUdp domXml(m_strfileRegPath);
+    DomXmlAnalysisForRegister domXml(m_strfileRegPath);
     return domXml.isDomXmlstrIdexist(strId);
 }
 /**
@@ -92,7 +94,7 @@ bool DevDiscoveryThread::isDomRegisterXml(QString strId)
 
 void DevDiscoveryThread::updateRegXml(QString strId, QList<QString> strListText)
 {
-    DomXmlAnalysisForUdp domXml(m_strfileRegPath);
+    DomXmlAnalysisForRegister domXml(m_strfileRegPath);
     domXml.doXml("update",strId,strListText);
 }
 /**
@@ -105,7 +107,7 @@ void DevDiscoveryThread::updateRegXml(QString strId, QList<QString> strListText)
 
 void DevDiscoveryThread::addUnRegXml(QString strId, QList<QString> strListText)
 {
-    DomXmlAnalysisForUdp domXml(m_strfileUnRegPath);
+    DomXmlAnalysisForUnRegister domXml(m_strfileUnRegPath);
     domXml.doXml("add",strId,strListText);
 }
 /**
@@ -139,7 +141,7 @@ void DevDiscoveryThread::udpRecvData()
 {
     enableThread(isRun);
     int count = 0;
-
+    int icount = 0;
     if (!m_isStop) {
        qDebug() << "break recvdata";
        return;
@@ -169,23 +171,22 @@ void DevDiscoveryThread::udpRecvData()
                QList<QString> strListTemp;
                readDomTempXml(strListTemp);
                /*2.2 保存id：ip */
-               strListTemp.append(recv_ip);         /*id,name,sn,private,ip,status*/
+               strListTemp.append(recv_ip);         /*id,name,model,sn,private,ip,status*/
                strListTemp.append(tr("在线"));
                //qDebug() << strListTemp;
 
                /*3. 查询注册表xml*/
-               bool isexist = isDomRegisterXml(strListTemp.at(0));
-               if(isexist)
+               QString strId = strListTemp.at(0);
+               bool isexist = isDomRegisterXml(strId);
+               if(!isexist)
                {
-                   QString strId = strListTemp.at(0);
+                   QString strUnRegisterId;
+
+                   strUnRegisterId = QString("%1").arg(icount);
+                   icount++;
                    strListTemp.removeAt(0);
                    QMutexLocker locker(&m_lockForXml);
-                   updateRegXml(strId,strListTemp);
-               } else {
-                   QString strId = strListTemp.at(0);
-                   strListTemp.removeAt(0);
-                   QMutexLocker locker(&m_lockForXml);
-                   addUnRegXml(strId,strListTemp);
+                   addUnRegXml(strUnRegisterId,strListTemp);
                    qDebug() << strListTemp;
                 }
                //count++;
@@ -201,7 +202,10 @@ void DevDiscoveryThread::udpRecvData()
 
 void DevDiscoveryThread::startSending()
 {
+#if DEBUG_TIMER
     if(!m_timer->isActive())
         m_timer->start(1000*10);
-
+#else
+    udpSendData();
+#endif
 }
