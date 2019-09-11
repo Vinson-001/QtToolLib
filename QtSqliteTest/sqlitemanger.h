@@ -1,3 +1,14 @@
+/**
+* @fileName
+* @brief         QT sqlite 封装
+*                   1.创建数据库
+*                   2.创建数据表
+*                   3.插入/更新/删除记录
+*                   4.删除数据库表
+*                   5.删除数据库
+* @author        Wxyang
+* @date          2019-09-11
+*/
 #ifndef SQLITEMANGER_H
 #define SQLITEMANGER_H
 
@@ -39,10 +50,16 @@ public:
     QByteArray queryOneBlobFieldFromId(const QString tableName, const QString strId, const QString strField);/*query one blob data*/
     QList<QByteArray> queryAllBlobFieldFromId(const QString tableName, const QString strId);
 
+    /*delete */
+    void deleteOneRecord(const QString tableName, const QString strId);
+    void deleteRecords(const QString tableName, const QString exp);
+    void clearTableRecord(const QString tableName);
+
 
     /*expand*/
     void addColForTable(const QString tableName,const QString colName, const QString colType);
     void deleteColFromTable(const QString tableName,const QString colName);
+    void deleteDatabase();
 
     bool beginTransaction();
     bool commitTransaction();

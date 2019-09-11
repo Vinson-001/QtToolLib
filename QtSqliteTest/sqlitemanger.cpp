@@ -3,7 +3,7 @@
 #include <QSqlQuery>
 #include <QSqlRecord>
 #include <QDebug>
-
+#include <QFile>
 /**
  * @funcname  SqliteManger
  * @brief     构造函数
@@ -14,7 +14,12 @@
 SqliteManger::SqliteManger(const QString path):
     m_dbFilePath(path)
 {
-    m_db = QSqlDatabase::addDatabase("QSQLITE");
+    if(QSqlDatabase::contains("qt_sql_default_connection"))  {
+        m_db = QSqlDatabase::database("qt_sql_default_connection");
+    }
+    else  {
+        m_db = QSqlDatabase::addDatabase("QSQLITE");
+    }
     m_db.setDatabaseName(m_dbFilePath);
 
     if (!m_db.open())
@@ -592,6 +597,82 @@ QList<QByteArray> SqliteManger::queryAllBlobFieldFromId(const QString tableName,
     }
 }
 /**
+ * @funcname  deleteOneRecord
+ * @brief     删除一条记录
+ * @param     tableName
+ * @param     strId key
+ * @return    no
+ */
+
+void SqliteManger::deleteOneRecord(const QString tableName, const QString strId)
+{
+    /*delete from <table_name> where <f1> = <value>*/
+    if(!isTableExists(tableName)){
+        qDebug() << QString("(%1:%2) delete failed: %3 table is not exists").arg(__func__).arg(__LINE__).arg(tableName);
+        return;
+    }
+    QString sql;
+    sql = QString("delete from %1 where id = %2").arg(tableName).arg(strId);
+    QSqlQuery sqlQuery;
+    sqlQuery.prepare(sql);
+    if(sqlQuery.exec()){
+        qDebug() << QString("(%1:%2) delete ok").arg(__func__).arg(__LINE__);
+    }
+    else {
+        qDebug() << QString("(%1:%2) delete failed").arg(__func__).arg(__LINE__) << sqlQuery.lastError();
+    }
+}
+/**
+ * @funcname  deleteRecords
+ * @brief     根据限定条件删除记录
+ * @param     tableName
+ * @param     exp 限定条件
+ * @return    ret
+ */
+
+void SqliteManger::deleteRecords(const QString tableName, const QString exp)
+{
+    if(!isTableExists(tableName)){
+        qDebug() << QString("(%1:%2) delete failed: %3 table is not exists").arg(__func__).arg(__LINE__).arg(tableName);
+        return;
+    }
+    QString sql;
+    sql = QString("delete from %1 where %2").arg(tableName).arg(exp);
+    QSqlQuery sqlQuery;
+    sqlQuery.prepare(sql);
+    if(sqlQuery.exec()){
+        qDebug() << QString("(%1:%2) delete ok").arg(__func__).arg(__LINE__);
+    }
+    else {
+        qDebug() << QString("(%1:%2) delete failed").arg(__func__).arg(__LINE__) << sqlQuery.lastError();
+    }
+}
+/**
+ * @funcname  clearTableRecord
+ * @brief     清空所有记录
+ * @param     tableName
+ * @param     param2
+ * @return    ret
+ */
+
+void SqliteManger::clearTableRecord(const QString tableName)
+{
+    if(!isTableExists(tableName)){
+        qDebug() << QString("(%1:%2) clear failed: %3 table is not exists").arg(__func__).arg(__LINE__).arg(tableName);
+        return;
+    }
+    QString sql;
+    sql = QString("delete from %1").arg(tableName);
+    QSqlQuery sqlQuery;
+    sqlQuery.prepare(sql);
+    if(sqlQuery.exec()){
+        qDebug() << QString("(%1:%2) clear %3 table ..ok").arg(__func__).arg(__LINE__).arg(tableName);
+    }
+    else {
+        qDebug() << QString("(%1:%2) clear failed").arg(__func__).arg(__LINE__) << sqlQuery.lastError();
+    }
+}
+/**
  * @funcname  addColForTable
  * @brief     为数据表新增一列
  * @param     tableName
@@ -671,6 +752,22 @@ void SqliteManger::deleteColFromTable(const QString tableName, const QString col
             }
         }
     }
+}
+/**
+ * @funcname  deleteDatabase
+ * @brief     删除整个数据库表
+ * @param     param1
+ * @param     param2
+ * @return    ret
+ */
+
+void SqliteManger::deleteDatabase()
+{
+    QFile file(m_dbFilePath);
+    if(file.exists()){
+        file.remove();
+    }
+
 }
 /**
  * @funcname  beginTransaction

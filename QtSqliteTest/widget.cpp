@@ -58,7 +58,11 @@ void Widget::on_pushButton_clicked()
     baData.append(ba1);
     baData.append(ba);
     //db.insertOneRecordForId("grp","5, 'yangwx', 'man', 25, ?, ?, ?, 'NULL', 'NULL', 'NULL', 'NULL', 'NOPRI'",baData,3);
-    db.insertOneRecordForId("grp","6, 'yangwx', 'man', 25, '?', '?', '?', 'NULL', 'NULL', 'NULL', 'NULL', 'NOPRI'",baData,0);
+    db.insertOneRecordForId("grp","1, 'yangwx1', 'man', 25, '?', '?', '?', 'NULL', 'NULL', 'NULL', 'NULL', 'NOPRI'",baData,0);
+    db.insertOneRecordForId("grp","2, 'yangwx2', 'man', 25, '?', '?', '?', 'NULL', 'NULL', 'NULL', 'NULL', 'NOPRI'",baData,0);
+    db.insertOneRecordForId("grp","3, 'yangwx3', 'man', 25, '?', '?', '?', 'NULL', 'NULL', 'NULL', 'NULL', 'NOPRI'",baData,0);
+    db.insertOneRecordForId("grp","4, 'yangwx4', 'man', 25, '?', '?', '?', 'NULL', 'NULL', 'NULL', 'NULL', 'NOPRI'",baData,0);
+    db.insertOneRecordForId("grp","5, 'yangwx5', 'man', 25, '?', '?', '?', 'NULL', 'NULL', 'NULL', 'NULL', 'NOPRI'",baData,0);
 }
 
 void Widget::on_pushButton_2_clicked()
@@ -116,7 +120,7 @@ void Widget::on_pushButton_3_clicked()
     db.isTableExists("T_Log");
 
 }
-
+/*delete col*/
 void Widget::on_pushButton_4_clicked()
 {
     SqliteManger db("./database.db");
@@ -128,7 +132,7 @@ void Widget::on_pushButton_4_clicked()
     db.isTableExists("T_Log");
 
 }
-
+/*query*/
 void Widget::on_pushButton_5_clicked()
 {
     SqliteManger db("./database.db");
@@ -140,4 +144,18 @@ void Widget::on_pushButton_5_clicked()
     //qDebug() << ba.at(1);
     db.getMaxIdFromTable("grp");
 
+}
+/*delete one record*/
+void Widget::on_pushButton_6_clicked()
+{
+    SqliteManger db("./database.db");
+    //db.deleteOneRecord("grp","1");
+    //db.clearTableRecord("grp");
+    db.deleteRecords("grp","id >1 and id < 5");
+}
+/* delete database */
+void Widget::on_pushButton_7_clicked()
+{
+    SqliteManger db("./database.db");
+    db.deleteDatabase();
 }
