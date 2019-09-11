@@ -157,8 +157,11 @@ bool SqliteManger::isTableExists(QString tableName)
     }else{
         QSqlRecord sqlRecord = sqlQuery.record();
         int count = sqlRecord.count();
-        qDebug() << count;
-        return true;
+        if(count > 0)
+            return true;
+        else {
+            return false;
+        }
     }
 
 }
@@ -297,7 +300,7 @@ bool SqliteManger::insertOneRecordForId(const QString tableName, const QString v
     }
     else
     {
-        qDebug() << "add person failed: name cannot be empty";
+        qDebug() << QString("(%1:%2) insert (%3) failed").arg(__func__).arg(__LINE__).arg(values);
     }
 
     return success;
@@ -347,7 +350,7 @@ bool SqliteManger::insertOneRecordForId(const QString tableName, const QString v
     }
     else
     {
-        qDebug() << "add person failed: name cannot be empty";
+        qDebug() << QString("(%1:%2) insert (%3) failed").arg(__func__).arg(__LINE__).arg(values);
     }
 
     return success;
@@ -518,6 +521,7 @@ QString SqliteManger::queryOneFieldFromId(const QString tableName, const QString
         qDebug() << QString("(%1:%2) update all blob failed").arg(__func__).arg(__LINE__) << sqlQuery.lastError();
         return "";
     }
+    return "";
 }
 /**
  * @funcname  queryOneBlobFieldFromId
@@ -546,11 +550,13 @@ QByteArray SqliteManger::queryOneBlobFieldFromId(const QString tableName, const 
             return value;
         }
 
+
     }
     else {
         qDebug() << QString("(%1:%2) update all blob failed").arg(__func__).arg(__LINE__) << sqlQuery.lastError();
         return "";
     }
+    return "";
 }
 /**
  * @funcname  queryAllBlobFieldFromId
@@ -767,7 +773,6 @@ void SqliteManger::deleteDatabase()
     if(file.exists()){
         file.remove();
     }
-
 }
 /**
  * @funcname  beginTransaction
